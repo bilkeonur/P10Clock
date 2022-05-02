@@ -1,5 +1,5 @@
 # P10Clock
-Clock Date and Temp Display with P10 panel
+Clock Date and Temp Display with P10 panels
 
 Firmware written in C\
 You can use this circuit with 1 Panel (16x32) - 2 Panel (16x64) - 4 Panel (32x64) - 6 Panel (32x96) - 12 Panel (48x128)
