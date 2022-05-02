@@ -1,7 +1,7 @@
 # P10Clock
 Clock Date and Temp Display with P10 panel
 
-Firmware written in C
+Firmware written in C\
 You can use this circuit with 1 Panel (16x32) - 2 Panel (16x64) - 4 Panel (32x64) - 6 Panel (32x96) - 12 Panel (48x128)
 
 # Driver Circuit
