@@ -15,6 +15,29 @@ You can use this circuit with 1 Panel (16x32) - 2 Panel (16x64) - 4 Panel (32x64
 ![16x32](https://github.com/bilkeonur/P10Clock/blob/main/Images/16x32-3.jpg)
 ![16x32](https://github.com/bilkeonur/P10Clock/blob/main/Images/16x32-4.jpg)
 
+# 16x64
+![16x32](https://github.com/bilkeonur/P10Clock/blob/main/Images/16x64-1.jpg)
+![16x64](https://github.com/bilkeonur/P10Clock/blob/main/Images/16x64-2.jpg)
+![16x64](https://github.com/bilkeonur/P10Clock/blob/main/Images/16x64-3.jpg)
+
+# 32x64
+![32x32](https://github.com/bilkeonur/P10Clock/blob/main/Images/32x64-1.jpg)
+![32x64](https://github.com/bilkeonur/P10Clock/blob/main/Images/32x64-2.jpg)
+![32x64](https://github.com/bilkeonur/P10Clock/blob/main/Images/32x64-3.jpg)
+![32x64](https://github.com/bilkeonur/P10Clock/blob/main/Images/32x64-4.jpg)
+
+# 32x96
+![32x96](https://github.com/bilkeonur/P10Clock/blob/main/Images/32x96-1.jpg)
+![32x96](https://github.com/bilkeonur/P10Clock/blob/main/Images/32x96.jpg)
+![32x96](https://github.com/bilkeonur/P10Clock/blob/main/Images/32x96-3.jpg)
+
+# 48x128
+![48x128](https://github.com/bilkeonur/P10Clock/blob/main/Images/48x128-1.jpg)
+![48x128](https://github.com/bilkeonur/P10Clock/blob/main/Images/48x128-2.jpg)
+![48x128](https://github.com/bilkeonur/P10Clock/blob/main/Images/48x128-3.jpg)
+![48x128](https://github.com/bilkeonur/P10Clock/blob/main/Images/48x128-4.jpg)
+
+
 # About The Author
 
 ### Onur BiLKE
