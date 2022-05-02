@@ -1,0 +1,668 @@
+#include <16F648A.h>
+#fuses HS,NOWDT,NOBROWNOUT,NOLVP,NOPUT,PROTECT,CPD
+#use delay(clock=20000000)
+
+#rom 0x2100={0,0,60,126,102,102,102,102,102,102,102,102,126,60,0,0} //0
+#rom 0x2110={0,0,126,126,24,24,24,24,24,24,24,120,56,24,0,0} //1
+#rom 0x2120={0,0,60,126,96,96,96,126,126,6,6,6,126,60,0,0} //2
+#rom 0x2130={0,0,60,126,70,6,6,62,62,6,6,70,126,60,0,0} //3
+#rom 0x2140={0,0,6,6,6,6,6,126,126,102,102,102,102,102,0,0} //4
+#rom 0x2150={0,0,60,126,102,6,6,126,124,96,96,96,126,126,0,0} //5
+#rom 0x2160={0,0,60,126,102,102,102,126,124,96,96,102,126,60,0,0} //6
+#rom 0x2170={0,0,48,48,48,48,48,48,24,12,6,6,126,126,0,0} //7
+#rom 0x2180={0,0,60,126,102,102,102,60,60,102,102,102,126,60,0,0} //8
+#rom 0x2190={0,0,60,126,102,6,6,62,126,102,102,102,126,60,0,0} //9
+#rom 0x21A0={0,0,0,0,0,0,0,0,0,60,102,102,102,60,0,0} //(°)
+#rom 0x21B0={0,0,28,62,114,96,96,96,96,96,96,114,62,28,0,0} //(C)
+#rom 0x21C0={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0} //(Boþ)
+#rom 0x21D0={0,0,0,0,0,0,0,126,126,0,0,0,0,0,0,0} //(-)
+#rom 0x21E0={0} //Boyut
+
+#include <DS1307.c>
+#include <1wire.c>
+
+#define OE pin_b6
+#define A pin_b5
+#define B pin_b4
+#define Clk pin_a2
+#define Le pin_a3
+#define Ri1 pin_b7
+#define Ri2 pin_a1
+#define Ri3 pin_a0
+#define Set pin_b0
+#define Up pin_b1
+
+BYTE sec;BYTE min;BYTE hrs;BYTE day;BYTE month;BYTE yr;BYTE dow;
+signed int8 temperature=0;
+
+int8 i=0;
+int8 j=0;
+int8 k=0;
+int8 l=0;
+int8 m=0;
+int16 n=0;
+int8 o=0;
+
+int1 Clk_Disp=1; //Saat Noktalarý
+int1 Date_Disp=0; //Tarih Noktalarý
+
+int8 Clk_Mod=0;
+
+int Disp_Cnt=0;
+
+int8 Num_Data[16];
+
+int8 Numbers[4]={12,12,12,12};
+int8 Nm;
+
+int16 Mod=0;
+int1 Clk_Sep=0;
+int1 Tmp_Read=0;
+
+int8 Edit_Mod=0;
+int8 Edit_Cnt=0;
+int8 Scan=0;
+
+int8 Set_Num[12];
+int8 Set_Say=0;
+int8 Scr_Say=0;
+
+int1 Kaydir=0;
+int8 Set_Max=0;
+
+void Clock()
+{
+   output_high(Clk);
+   output_low(Clk);
+}
+
+void Latch_Enable()
+{
+   output_high(Le);
+   output_low(Le);
+}
+
+void Write_74HC595(int8 output_data1)
+{         
+   for(i=0;i<=7;i++)
+   {
+      if (output_data1 & 0x80)
+      {
+         output_low(Ri1);        
+      }
+      else
+      {
+         output_high(Ri1);
+      }
+      
+      Clock();
+
+      output_data1  <<= 1;
+   }
+   
+   Latch_Enable();
+}
+
+void Write_74HC595(int8 output_data1 , int8 output_data2 , int8 Mod)
+{         
+   if(Mod==1)
+   {
+      for(l=0;l<=3;l++)
+      {
+         output_data1  <<= 1;
+         output_data2  <<= 1;
+      }
+   }
+   
+   for(i=0;i<=3;i++)
+   {
+      if (output_data1 & 0x80)
+      {
+         output_low(Ri1);        
+      }
+      else
+      {
+         output_high(Ri1);
+      }
+      
+      if (output_data2 & 0x80)
+      {
+         output_low(Ri2);        
+      }
+      else
+      {
+         output_high(Ri2);
+      }
+      
+      Clock();
+      Clock();
+
+      output_data1  <<= 1;
+      output_data2  <<= 1;
+   }
+   
+   Latch_Enable();
+}
+
+void Write_74HC595(int8 output_data1 , int8 output_data2 , int8 output_data3 , int8 Mod)
+{         
+   if(Mod==1)
+   {
+      for(l=0;l<=1;l++)
+      {
+         output_data1  <<= 1;
+         output_data2  <<= 1;
+         output_data3  <<= 1;
+      }
+   }
+   
+   if(Mod==2)
+   {
+      for(l=0;l<=3;l++)
+      {
+         output_data1  <<= 1;
+         output_data2  <<= 1;
+         output_data3  <<= 1;
+      }
+   }
+   
+   if(Mod==3)
+   {
+      for(l=0;l<=5;l++)
+      {
+         output_data1  <<= 1;
+         output_data2  <<= 1;
+         output_data3  <<= 1;
+      }
+   }
+   
+   for(i=0;i<=1;i++)
+   {
+      if (output_data1 & 0x80)
+      {
+         output_low(Ri1);        
+      }
+      else
+      {
+         output_high(Ri1);
+      }
+      
+      if (output_data2 & 0x80)
+      {
+         output_low(Ri2);        
+      }
+      else
+      {
+         output_high(Ri2);
+      }
+      
+      if (output_data3 & 0x80)
+      {
+         output_low(Ri3);        
+      }
+      else
+      {
+         output_high(Ri3);
+      }
+      
+      Clock();
+      Clock();
+      Clock();
+      Clock();
+     
+      output_data1  <<= 1;
+      output_data2  <<= 1;
+      output_data3  <<= 1;
+   }
+   
+   Latch_Enable();
+}
+
+void Create_Number(int Line)
+{   
+   for (k=0;k<=3;k++)
+   {
+      Nm=Numbers[k];
+      
+      for(o=0;o<=15;o++)
+      {
+         Num_Data[o]=read_eeprom((Nm*16)+o);
+      }
+      
+      if(Kaydir==1)
+      {
+         for(m=0;m<=15;m++)
+         {
+            if(k<=1)
+            {
+               Num_Data[m]<<= 1;
+            }
+            else
+            {
+               Num_Data[m]>>= 1;
+            }
+         }
+      }
+      
+      if (Clk_Disp==1)
+      {
+         if(k==1)
+         {
+            Num_Data[10]=Num_Data[10]+1;Num_Data[9]=Num_Data[9]+1;
+            Num_Data[6]=Num_Data[6]+1;Num_Data[5]=Num_Data[5]+1;
+         }
+               
+         if (k==2)
+         {
+            Num_Data[10]=Num_Data[10]+128;Num_Data[9]=Num_Data[9]+128;
+            Num_Data[6]=Num_Data[6]+128;Num_Data[5]=Num_Data[5]+128;
+         }
+      }
+      
+      if(Date_Disp==1)
+      {
+         if(k==1)
+         {
+            Num_Data[2]=Num_Data[2]+1;Num_Data[3]=Num_Data[3]+1;
+         }
+         
+         if (k==2)
+         {
+            Num_Data[2]=Num_Data[2]+128;Num_Data[3]=Num_Data[3]+128;
+         }  
+      }
+      
+      if(Scan==0)//16x32
+      {
+         for(j=3;j<=15;j=j+4)
+         {
+            Write_74HC595(Num_Data[j-Line]);
+         }
+      }
+      
+      if(Scan==1) //32x64
+      {     
+         if(Line%2==0)
+         {
+            for(j=1;j<=7;j=j+2)
+            {
+               Write_74HC595(Num_Data[(j+8)-(Line/2)],Num_Data[j-(Line/2)],0);
+            }
+                  
+            for(j=1;j<=7;j=j+2)
+            {
+               Write_74HC595(Num_Data[(j+8)-(Line/2)],Num_Data[j-(Line/2)],1);
+            }
+         }
+      }        
+      
+      if(Scan==2) //48x128
+      {      
+         if(Line%4==0)
+         {
+            for(j=2;j<=5;j++)
+            {
+               Write_74HC595(Num_Data[j+8],Num_Data[j+4],Num_Data[j],0);
+            }
+                  
+            for(j=2;j<=5;j++)
+            {
+               Write_74HC595(Num_Data[j+8],Num_Data[j+4],Num_Data[j],1);
+            }
+                  
+            for(j=2;j<=5;j++)
+            {
+               Write_74HC595(Num_Data[j+8],Num_Data[j+4],Num_Data[j],2);
+            }
+                  
+            for(j=2;j<=5;j++)
+            {
+               Write_74HC595(Num_Data[j+8],Num_Data[j+4],Num_Data[j],3);
+            }
+         }
+      }
+   }
+}
+
+void Get_Time()
+{
+   ds1307_get_time(hrs,min,sec);
+   ds1307_get_date(day,month,yr,dow);
+}
+
+void Goster(int8 Md)
+{
+   Get_Time();
+   
+   switch (Md)
+   {
+      case 0:
+         
+         Clk_Sep=1;
+         Date_Disp=0;
+         Kaydir=1;
+         
+         Numbers[0]=hrs/10;
+         Numbers[1]=hrs%10;
+         Numbers[2]=min/10;
+         Numbers[3]=min%10;
+         
+         break;
+         
+      case 1:
+                  
+         Clk_Sep=0;
+         Clk_Disp=0;
+         Date_Disp=1;
+         Kaydir=1;
+         
+         Numbers[0]=day/10;
+         Numbers[1]=day%10;
+         Numbers[2]=month/10;
+         Numbers[3]=month%10;
+            
+         break;
+         
+      case 2:
+                 
+         Clk_Sep=0;
+         Clk_Disp=0;
+         Date_Disp=0;
+         Kaydir=0; 
+            
+         Numbers[0]=2;
+         Numbers[1]=0;
+         Numbers[2]=yr/10;
+         Numbers[3]=yr%10;
+           
+         break;
+         
+      case 3:
+         
+         if(Tmp_Read==0)
+         {
+            output_low(OE);
+            delay_ms(5);
+            temperature = ds1820_read()/10;
+            Tmp_Read=1;
+         }
+         
+         Clk_Sep=0;
+         Clk_Disp=0;
+         Date_Disp=0;
+         Kaydir=0; 
+          
+         if(temperature>=0 && temperature<100)
+         {
+            Numbers[0]=temperature/10;
+            Numbers[1]=temperature%10;
+            Numbers[2]=10;
+            Numbers[3]=11;
+         }
+         else if(temperature<0 && temperature>-100)
+         {
+            Numbers[0]=13;
+            Numbers[1]=temperature/10;
+            Numbers[2]=temperature%10;
+            Numbers[3]=10;
+         }
+         else
+         {
+            Numbers[0]=13;
+            Numbers[1]=13;
+            Numbers[2]=13;
+            Numbers[3]=13;
+         }
+         
+         break;
+   }
+}
+
+#int_timer0
+void timer0_kesme()
+{
+   set_timer0(255);
+   
+   switch (Disp_Cnt)
+   {
+      case 0:
+         output_low(OE);Create_Number(Disp_Cnt);
+         output_low(A);output_low(B);output_high(OE);
+         break;
+   
+      case 1:
+         output_low(OE);Create_Number(Disp_Cnt);
+         output_high(A);output_low(B);output_high(OE);
+         break;
+   
+      case 2:
+         output_low(OE);Create_Number(Disp_Cnt);
+         output_low(A);output_high(B);output_high(OE);
+         break;
+   
+      case 3:
+         output_low(OE);Create_Number(Disp_Cnt);
+         output_high(A);output_high(B);output_high(OE);
+         break;
+   }
+   
+   Disp_Cnt++;if(Disp_Cnt>3)Disp_Cnt=0;
+   
+   if(Edit_Mod==0)
+   {
+      if(Clk_Sep==1) //Saat Noktalarý
+      {
+         if(Clk_Mod>=0 && Clk_Mod<100)
+         {
+            Clk_Disp=1;
+         }
+         else if(Clk_Mod>=100 && Clk_Mod<200)
+         {
+            Clk_Disp=0;
+         }
+         else if(Clk_Mod>=200)
+         {
+            Clk_Mod=0;
+         }
+      
+         Clk_Mod++;
+      }
+   }
+   
+   if(Edit_Mod==0)
+   {        
+      if(Mod<=1800)
+      {
+         Tmp_Read=0;
+         Goster(0);
+      }
+      else if(Mod>1800 && Mod<=3000)
+      {
+         Goster(3);
+      }
+      else if(Mod>3000)
+      {
+         Mod=0;
+      }
+            
+      Mod++;
+   }
+   else
+   {
+      if(Edit_Cnt>=0 && Edit_Cnt<100)
+      {
+         Numbers[Scr_Say]=12;
+      }
+      else if(Edit_Cnt>=100 && Edit_Cnt<200)
+      {
+         Numbers[Scr_Say]=Set_Num[Set_Say];
+      }
+      else if(Edit_Cnt>=200)
+      {
+         Edit_Cnt=0;
+      }
+      
+      Edit_Cnt++;
+   }
+}
+
+void Set_Time(int8 hour , int8 minute , int8 day , int8 month , int8 year)
+{
+   ds1307_set_date_time(day,month,year,1,hour,minute,00);
+}
+
+void Set_Ata()
+{
+   Get_Time();
+
+   Set_Num[0]=hrs/10;
+   Set_Num[1]=hrs%10;
+   Set_Num[2]=min/10;
+   Set_Num[3]=min%10;
+   Set_Num[4]=day/10;
+   Set_Num[5]=day%10;
+   Set_Num[6]=month/10;
+   Set_Num[7]=month%10;
+   Set_Num[8]=yr/10;
+   Set_Num[9]=yr%10;
+}
+
+void Buton_Bekleme()
+{
+   for(n=1;n<=1000;n++)
+   {
+      delay_us(1);
+   }
+}
+
+void Boyut_Ayar_Oku()
+{
+   Scan=read_eeprom(224);   
+}
+
+void Boyut_Ayar_Yaz()
+{
+   write_eeprom(224,Scan);
+}
+
+void Set_Buton_Oku()
+{
+   if(input(Set))
+   {
+      Mod=0;
+      Clk_Sep=0;
+      Clk_Disp=0;
+      Date_Disp=0;
+      Clk_Mod=0;
+      
+      Edit_Cnt=0;
+      Set_Say=Edit_Mod;
+      Scr_Say=Edit_Mod%4;
+      
+      switch (Edit_Mod)
+      {
+         case 0:
+            Clk_Sep=0;
+            Clk_Disp=1;
+            Date_Disp=0;
+            Set_Ata();
+            Numbers[0]=Set_Num[0];Numbers[1]=Set_Num[1];Numbers[2]=Set_Num[2];Numbers[3]=Set_Num[3];
+            Set_Max=2;
+            Edit_Mod=1;
+            break;
+               
+        case 1:
+            Clk_Sep=0;
+            Clk_Disp=1;
+            Date_Disp=0;
+            Numbers[0]=Set_Num[0];Numbers[1]=Set_Num[1];Numbers[2]=Set_Num[2];Numbers[3]=Set_Num[3];
+            Set_Max=9;
+            Edit_Mod++;
+            break;
+               
+         case 2:
+            Clk_Sep=0;
+            Clk_Disp=1;
+            Date_Disp=0;
+            Numbers[0]=Set_Num[0];Numbers[1]=Set_Num[1];Numbers[2]=Set_Num[2];Numbers[3]=Set_Num[3];
+            Set_Max=5;
+            Edit_Mod++;
+            break;
+               
+         case 3:
+            Clk_Sep=0;
+            Clk_Disp=1;
+            Date_Disp=0;
+            Numbers[0]=Set_Num[0];Numbers[1]=Set_Num[1];Numbers[2]=Set_Num[2];Numbers[3]=Set_Num[3];
+            Set_Max=9;
+            Edit_Mod++;
+            break;
+                    
+         case 4:
+            Set_Time((Set_Num[0]*10)+Set_Num[1],(Set_Num[2]*10)+Set_Num[3],26,02,14);
+            Mod=0;
+            Edit_Mod=0;
+            break;
+      }
+      
+      while(input(Set))
+      {  
+         Buton_Bekleme();
+      } 
+   }
+}
+
+void Up_Buton_Oku()
+{
+   if(input(Up))
+   {
+      Mod=0;
+      
+      if(Edit_Mod!=0)
+      {
+         if(Set_Num[Set_Say]==Set_Max)
+         {
+            Set_Num[Set_Say]=0;
+         }
+         else
+         {
+            Set_Num[Set_Say]++;
+         }
+      }
+      else
+      {
+        
+      }
+      
+      while(input(Up))
+      {
+         Buton_Bekleme();   
+      }
+   }
+}
+
+void main()
+{
+   setup_timer_1(T1_DISABLED);     
+   setup_timer_2(T2_DISABLED,0,1);             
+   setup_CCP1(CCP_OFF);
+   
+   setup_timer_0(RTCC_INTERNAL | RTCC_8_BIT | RTCC_DIV_32);
+   set_timer0(255);
+   
+   set_tris_b(0b00000111);
+   output_b(0);
+   
+   enable_interrupts(INT_TIMER0);
+   enable_interrupts(GLOBAL);
+     
+   ds1307_init();
+   
+   Boyut_Ayar_Oku();
+         
+   while(1)
+   {      
+      Set_Buton_Oku();
+      Up_Buton_Oku();
+   } 
+}

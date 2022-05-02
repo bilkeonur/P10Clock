@@ -1,0 +1,11 @@
+>>> Warning 203 "C:\Users\Onur\Desktop\P10\P10 (26.02.2014)\Saat ve Derece\16x32\DS1307.c" Line 107(1,1): Condition always TRUE
+>>> Warning 206 "P10.c" Line 455(1,1): Variable of this data type is never greater than this constant
+>>> Warning 204 "P10.c" Line 455(1,1): Condition always FALSE
+>>> Warning 203 "P10.c" Line 727(1,1): Condition always TRUE
+>>> Warning 216 "P10.c" Line 732(1,2): Interrupts disabled during call to prevent re-entrancy:  (@I2C_WRITE_1)
+>>> Warning 216 "P10.c" Line 732(1,2): Interrupts disabled during call to prevent re-entrancy:  (@I2C_READ_1)
+>>> Warning 216 "P10.c" Line 732(1,2): Interrupts disabled during call to prevent re-entrancy:  (bcd2bin)
+>>> Warning 216 "P10.c" Line 732(1,2): Interrupts disabled during call to prevent re-entrancy:  (@DIV88)
+      Memory usage:   ROM=77%      RAM=26% - 45%
+      0 Errors,  8 Warnings.
+Build Successful.
